@@ -9,22 +9,6 @@
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet"/>
 
 <style>
-  html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  overflow-x: hidden; /* <-- Impede o scroll lateral */
-  box-sizing: border-box;
-}
-
-.container-principal, .fc, .fc-view, .fc-scroller {
-  max-width: 100vw; /* Garante que nada ultrapasse a tela */
-}
-
-.fc { 
-  margin: 0 auto; /* Centraliza o calendário */
-}
-
 :root{
   --primary:#d84315;
   --accent:#ff7043;
@@ -112,8 +96,7 @@ form input, form textarea, form select{ padding:8px 10px; border-radius:8px; bor
     <button id="viewMonth" class="btn ghost">Mês</button>
     <button id="viewWeek" class="btn ghost">Semana</button>
     <button id="viewDay" class="btn ghost">Dia</button>
-    <button id="newBtn" class="btn primary">+ Novo Agendamento</button>
-    <button id="loginBtn" class="btn ghost">Entrar</button>
+    
   </div>
 </header>
 
