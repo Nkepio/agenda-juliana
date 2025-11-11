@@ -9,6 +9,22 @@
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet"/>
 
 <style>
+  html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden; /* <-- Impede o scroll lateral */
+  box-sizing: border-box;
+}
+
+.container-principal, .fc, .fc-view, .fc-scroller {
+  max-width: 100vw; /* Garante que nada ultrapasse a tela */
+}
+
+.fc { 
+  margin: 0 auto; /* Centraliza o calendário */
+}
+
 :root{
   --primary:#d84315;
   --accent:#ff7043;
