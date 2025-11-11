@@ -33,7 +33,7 @@ header h1{ margin:0; font-size:18px; color:var(--primary); }
 .btn{ border:0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:600; box-shadow:0 3px 8px rgba(0,0,0,0.06); background:transparent; }
 .btn.primary{ background:var(--primary); color:#fff; }
 .btn.ghost{ background:transparent; border:1px solid rgba(0,0,0,0.06); }
-.main{ display:flex; gap:32px; padding:28px; align-items:flex-start; }
+.main{ display:flex; gap:18px; padding:18px; align-items:flex-start; }
 #calendar { flex:1 1 700px; background:white; border-radius:12px; padding:14px; box-shadow:0 8px 24px rgba(0,0,0,0.06); min-width:300px; }
 
 .side-panel{
@@ -96,7 +96,7 @@ form input, form textarea, form select{ padding:8px 10px; border-radius:8px; bor
     <button id="viewMonth" class="btn ghost">Mês</button>
     <button id="viewWeek" class="btn ghost">Semana</button>
     <button id="viewDay" class="btn ghost">Dia</button>
-    
+    <button id="newBtn" class="btn primary">+ Novo Agendamento</button>
   </div>
 </header>
 
@@ -139,10 +139,10 @@ form input, form textarea, form select{ padding:8px 10px; border-radius:8px; bor
         <input id="servico" type="text" placeholder="Ex: Manicure"/>
 
         <label>Contato</label>
-        <div style="display:flex; gap:8px;">
-          <input id="contato" type="tel" required placeholder="Selecione ou digite..." style="flex:1;"/>
-          <button type="button" id="pickContact" class="btn ghost">Agenda</button>
-        </div>
+	<div style="display:flex; gap:8px;">
+  	 <input id="contato" type="text" required placeholder="Selecione ou digite..." style="flex:1;"/>
+  	 <button type="button" id="pickContact" class="btn ghost">Agenda</button>
+	</div>
 
         <label>Data</label>
         <input id="data" type="date" required />
@@ -174,37 +174,25 @@ form input, form textarea, form select{ padding:8px 10px; border-radius:8px; bor
   </aside>
 </div>
 
-<footer class="footer-note">Dados salvos no Firestore (Projeto: Studio Juliana Julia). FullCalendar carregado via CDN.</footer>
+<footer class="footer-note">Dados salvos localmente no navegador. FullCalendar carregado via CDN.</footer>
 
 <!-- FullCalendar (CDN) -->
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/locales/pt-br.global.min.js"></script>
 
-<script type="module">
-/* Firebase + Firestore + FullCalendar integration */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-import { getFirestore, collection, addDoc, query, where, getDocs, doc, setDoc, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
-
-// Your firebaseConfig (inserido por você)
-const firebaseConfig = {
-  apiKey: "AIzaSyAYzvHGI-7jAKBd5BLGX5pXHy60MPj3Qss",
-  authDomain: "agenda-studio-juliana-julia.firebaseapp.com",
-  projectId: "agenda-studio-juliana-julia",
-  storageBucket: "agenda-studio-juliana-julia.firebasestorage.app",
-  messagingSenderId: "364351426824",
-  appId: "1:364351426824:web:f1c82f056088b62f21dcbd"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-/* Local helper functions */
+<script>
+/* Agenda Avançada - integração de todas as funções pedidas */
+/* STORAGE KEY */
+const STORAGE_KEY = 'agendaEventos_v2';
+/* Helpers */
+function saveStorage(arr){ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+function loadStorage(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e){ return []; } }
 function uid(){ return Math.random().toString(36).slice(2,9); }
 function toMinutes(t){ if(!t) return 0; const [h,m]=t.split(':').map(Number); return h*60 + m; }
 function formatDateDot(dateStr){ const d=new Date(dateStr + 'T00:00:00'); const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); const yyyy=d.getFullYear(); return `${dd}.${mm}.${yyyy}`; }
 
-/* Conflict check (same-day) - local list */
-function hasConflictLocal(eventList, date, startMin, endMin, excludeId=null){
+/* Conflict check (same-day) */
+function hasConflict(eventList, date, startMin, endMin, excludeId=null){
   return eventList.some(ev=>{
     if(ev.date !== date) return false;
     if(ev.id === excludeId) return false;
@@ -214,38 +202,34 @@ function hasConflictLocal(eventList, date, startMin, endMin, excludeId=null){
   });
 }
 
-/* Convert Firestore doc to calendar event */
-function docToEvent(doc){
-  const d = doc.data();
+/* Convert to FullCalendar event */
+function evToCalendarEvent(ev){
   return {
-    id: doc.id,
-    title: `${d.name}${d.service ? ' — ' + d.service : ''}`,
-    start: d.date + 'T' + d.start,
-    end: d.date + 'T' + d.end,
+    id: ev.id,
+    title: `${ev.name}${ev.service ? ' — ' + ev.service : ''}`,
+    start: ev.date + 'T' + ev.start,
+    end: ev.date + 'T' + ev.end,
     allDay: false,
     extendedProps: {
-      contact: d.phone,
-      status: d.status,
-      service: d.service,
-      date: d.date,
-      start: d.start,
-      end: d.end,
-      clientId: d.clientId || null
+      contact: ev.contact,
+      status: ev.status,
+      service: ev.service,
+      date: ev.date,
+      start: ev.start,
+      end: ev.end,
+      description: ev.description || ''
     }
   };
 }
 
-let calendar; // will hold FullCalendar instance
-let liveAppointments = []; // cache of appointments from Firestore
-
-/* Init Calendar and listeners */
+/* Init Calendar */
 document.addEventListener('DOMContentLoaded', function() {
   const calendarEl = document.getElementById('calendar');
 
-  calendar = new FullCalendar.Calendar(calendarEl, {
+  const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
     locale: 'pt-br',
-    firstDay: 1,
+    firstDay: 1, // semana começa na segunda (you chose A earlier but you said A = domingo; keep settable)
     headerToolbar: {
       left: 'prev,next today',
       center: 'title',
@@ -254,8 +238,8 @@ document.addEventListener('DOMContentLoaded', function() {
     height: 'auto',
     dayMaxEventRows: true,
     selectable: true,
-    events: [], // will be filled by Firestore
-    dateClick: function(info){ openPanelForDate(info.dateStr); },
+    events: loadStorage().map(evToCalendarEvent),
+    dateClick: function(info){ openPanelForDate(info.dateStr, calendar); },
     eventDidMount: function(info){
       const status = info.event.extendedProps.status;
       if(status === 'confirmado'){
@@ -277,71 +261,71 @@ document.addEventListener('DOMContentLoaded', function() {
   calendar.render();
   window._fc = calendar;
 
+  // Header buttons
   document.getElementById('todayBtn').addEventListener('click', ()=> calendar.today());
   document.getElementById('viewMonth').addEventListener('click', ()=> calendar.changeView('dayGridMonth'));
   document.getElementById('viewWeek').addEventListener('click', ()=> calendar.changeView('timeGridWeek'));
   document.getElementById('viewDay').addEventListener('click', ()=> calendar.changeView('timeGridDay'));
   document.getElementById('newBtn').addEventListener('click', ()=>{
     const today = calendar.getDate().toISOString().slice(0,10);
-    openPanelForDate(today);
+    openPanelForDate(today, calendar);
     scrollToForm();
   });
 
+  // login button
+  document.getElementById('loginBtn').addEventListener('click', showLogin);
+
+  // search/filter handlers
   document.getElementById('searchName').addEventListener('input', ()=> {
+    // refresh displayed list for selected day
     const date = document.getElementById('data').value || (window._fc ? window._fc.getDate().toISOString().slice(0,10) : null);
-    if(date) openPanelForDate(date);
+    if(date) openPanelForDate(date, calendar);
   });
   document.getElementById('filterDate').addEventListener('change', ()=> {
     const d = document.getElementById('filterDate').value;
-    if(d) openPanelForDate(d);
+    if(d) openPanelForDate(d, calendar);
   });
   document.getElementById('clearFilters').addEventListener('click', ()=> {
     document.getElementById('searchName').value='';
     document.getElementById('filterDate').value='';
+    // refresh current panel
     const curDate = document.getElementById('data').value || (window._fc ? window._fc.getDate().toISOString().slice(0,10) : null);
-    if(curDate) openPanelForDate(curDate);
+    if(curDate) openPanelForDate(curDate, calendar);
   });
 
+  // form submit
   document.getElementById('addForm').addEventListener('submit', function(e){
     e.preventDefault();
-    handleFormSubmit();
+    handleFormSubmit(calendar);
   });
   document.getElementById('cancelEdit').addEventListener('click', ()=> { clearForm(); document.getElementById('formMessage').textContent=''; });
 
-  document.getElementById('pickContact').addEventListener('click', pickContactFromDevice);
-
+  // If user is already logged, show info
   renderUserInfo();
-
-  // start listening to appointments collection (live)
-  const q = query(collection(db, 'appointments'));
-  onSnapshot(q, (snapshot)=>{
-    liveAppointments = snapshot.docs.map(doc=> ({ id: doc.id, ...doc.data() }));
-    refreshCalendarEventsFromLive();
-    // if currently open panel for a date, refresh it
-    const curDate = document.getElementById('data').value || (window._fc ? window._fc.getDate().toISOString().slice(0,10) : null);
-    if(curDate) openPanelForDate(curDate);
-  });
 });
 
-/* Open side panel for a date */
-function openPanelForDate(dateStr){
+/* Side panel open */
+function openPanelForDate(dateStr, calendar){
   const panel = document.getElementById('sidePanel');
   panel.setAttribute('aria-hidden','false');
   document.getElementById('panelTitle').textContent = 'Agenda — ' + formatDateDot(dateStr);
 
-  const all = liveAppointments.map(a=> ({ id: a.id, name: a.name, service: a.service, contact: a.phone, phone: a.phone, date: a.date, start: a.start, end: a.end, status: a.status || 'pendente' }));
+  // load events and apply search/filter
+  const all = loadStorage();
   const search = (document.getElementById('searchName').value || '').toLowerCase();
+  const filterDate = document.getElementById('filterDate').value;
   const dayEvents = all.filter(ev=> ev.date === dateStr)
-                       .filter(ev => !search || (ev.name && ev.name.toLowerCase().includes(search)))
+                       .filter(ev => !search || ev.name.toLowerCase().includes(search))
                        .sort((a,b)=> a.start.localeCompare(b.start));
 
   renderEventList(dayEvents);
   document.getElementById('dayCount').textContent = dayEvents.length + ' compromissos';
   document.getElementById('data').value = dateStr;
   document.getElementById('editId').value = '';
+  refreshCalendarEvents(calendar);
 }
 
-/* Render events */
+/* Render events in side panel */
 function renderEventList(list){
   const container = document.getElementById('eventList');
   container.innerHTML = '';
@@ -368,7 +352,7 @@ function renderEventList(list){
     const btnWhats = document.createElement('button'); btnWhats.className='small-btn whatsapp'; btnWhats.textContent='📩 WhatsApp';
     btnWhats.onclick = ()=> {
       const mensagem = `Studio Juliana Julia, confirma seu agendamento para o dia ${formatDateDot(ev.date)} às ${ev.start} - ${ev.end}. Nos vemos em breve. Obrigada.`;
-      window.open(`https://wa.me/55${ev.contact.replace(/\D/g,'')}?text=${encodeURIComponent(mensagem)}`, '_blank');
+      window.open(`https://wa.me/55${ev.contact}?text=${encodeURIComponent(mensagem)}`, '_blank');
     };
     actions.appendChild(btnWhats);
 
@@ -376,11 +360,11 @@ function renderEventList(list){
     btnEdit.onclick = ()=> populateFormForEdit(ev); actions.appendChild(btnEdit);
 
     const btnDelete = document.createElement('button'); btnDelete.className='small-btn delete'; btnDelete.textContent='🗑️ Apagar';
-    btnDelete.onclick = ()=> { if(confirm('Apagar este agendamento?')){ deleteAppointment(ev.id); openPanelForDate(ev.date); } };
+    btnDelete.onclick = ()=> { if(confirm('Apagar este agendamento?')){ deleteEvent(ev.id); openPanelForDate(ev.date, window._fc); } };
     actions.appendChild(btnDelete);
 
     const btnToggle = document.createElement('button'); btnToggle.className='small-btn status'; btnToggle.textContent = ev.status==='pendente'?'⏳ Confirmar':'✅ Marcar Pendente';
-    btnToggle.onclick = ()=> { toggleStatus(ev.id); openPanelForDate(ev.date); };
+    btnToggle.onclick = ()=> { toggleStatus(ev.id); openPanelForDate(ev.date, window._fc); };
     actions.appendChild(btnToggle);
 
     card.appendChild(actions);
@@ -388,12 +372,12 @@ function renderEventList(list){
   });
 }
 
-/* Populate for edit */
+/* Populate form for editing */
 function populateFormForEdit(ev){
   document.getElementById('editId').value = ev.id;
   document.getElementById('nome').value = ev.name;
   document.getElementById('servico').value = ev.service || '';
-  document.getElementById('contato').value = ev.phone || ev.contact;
+  document.getElementById('contato').value = ev.contact;
   document.getElementById('data').value = ev.date;
   document.getElementById('horaInicio').value = ev.start;
   document.getElementById('horaFim').value = ev.end;
@@ -402,12 +386,12 @@ function populateFormForEdit(ev){
   scrollToForm();
 }
 
-/* Form submit -> save client (if new) and appointment into Firestore */
-async function handleFormSubmit(){
-  const id = document.getElementById('editId').value || null;
+/* Handle create / edit */
+function handleFormSubmit(calendar){
+  const id = document.getElementById('editId').value || uid();
   const name = document.getElementById('nome').value.trim();
   const service = document.getElementById('servico').value.trim();
-  const contact = document.getElementById('contato').value.trim().replace(/\D/g,'');
+  const contact = document.getElementById('contato').value.trim();
   const date = document.getElementById('data').value;
   const start = document.getElementById('horaInicio').value;
   const end = document.getElementById('horaFim').value;
@@ -425,71 +409,51 @@ async function handleFormSubmit(){
 
   const startMin = toMinutes(start);
   const endMin = toMinutes(end);
-
-  // conflict check against liveAppointments
-  if(hasConflictLocal(liveAppointments, date, startMin, endMin, id)){
+  const events = loadStorage();
+  if(hasConflict(events, date, startMin, endMin, id)){
     document.getElementById('formMessage').textContent = 'Horário indisponível — existe conflito.';
     return;
   }
 
-  try{
-    // ensure client exists (search by phone)
-    const clientsRef = collection(db, 'clients');
-    const q = query(clientsRef, where('phone','==',contact));
-    const snapshot = await getDocs(q);
-    let clientId = null;
-    if(snapshot.empty){
-      const newClient = await addDoc(clientsRef, { name, phone: contact });
-      clientId = newClient.id;
-    } else {
-      clientId = snapshot.docs[0].id;
-      // optionally update name if empty
-      const cData = snapshot.docs[0].data();
-      if(!cData.name && name) await setDoc(doc(db, 'clients', clientId), { name, phone: contact }, { merge: true });
-    }
+  const obj = { id, name, service, contact, date, start, end, status };
 
-    // save appointment
-    const appointmentsRef = collection(db, 'appointments');
-    const payload = { name, phone: contact, service, date, start, end, status, clientId };
-
-    if(id){
-      // overwrite existing
-      await setDoc(doc(db, 'appointments', id), payload, { merge: true });
-    } else {
-      await addDoc(appointmentsRef, payload);
-    }
-
-    document.getElementById('formMessage').textContent = 'Salvo com sucesso!';
-
-    if(autoWhats){
-      const mensagem = `Studio Juliana Julia, confirma seu agendamento para o dia ${formatDateDot(date)} às ${start} - ${end}. Obrigada.`;
-      window.open(`https://wa.me/55${contact}?text=${encodeURIComponent(mensagem)}`,'_blank');
-    }
-
-    clearForm();
-    setTimeout(()=>{ document.getElementById('formMessage').textContent=''; },1500);
-  }catch(err){
-    console.error(err);
-    document.getElementById('formMessage').textContent = 'Erro ao salvar. Veja console.';
+  let all = loadStorage();
+  const existsIdx = all.findIndex(x=> x.id === id);
+  if(existsIdx >= 0){
+    all[existsIdx] = obj;
+  } else {
+    all.push(obj);
   }
+  all.sort((a,b)=> a.date.localeCompare(b.date) || a.start.localeCompare(b.start));
+  saveStorage(all);
+
+  // refresh calendar and panel
+  refreshCalendarEvents(calendar);
+  openPanelForDate(date, calendar);
+
+  // optional: open WhatsApp to notify immediately
+  if(autoWhats){
+    const mensagem = `Studio Juliana Julia, confirma seu agendamento para o dia ${formatDateDot(date)} às ${start} - ${end}. Nos vemos em breve. Obrigada.`;
+    window.open(`https://wa.me/55${contact}?text=${encodeURIComponent(mensagem)}`, '_blank');
+  }
+
+  document.getElementById('formMessage').textContent = 'Salvo com sucesso!';
+  setTimeout(()=>{ document.getElementById('formMessage').textContent = ''; }, 1500);
+  clearForm();
 }
 
-/* delete / toggle */
-async function deleteAppointment(id){
-  try{ await setDoc(doc(db,'appointments',id), {}, { merge: false });
-    // Note: this sets empty doc; better to use deleteDoc in production. Using setDoc here to avoid permission issues in some rules.
-    // If you prefer actual delete, replace with: await deleteDoc(doc(db,'appointments',id));
-  }catch(e){ console.error(e); }
+/* delete, toggle status, clear form */
+function deleteEvent(id){
+  let all = loadStorage();
+  all = all.filter(e=> e.id !== id);
+  saveStorage(all);
+  refreshCalendarEvents(window._fc);
 }
-async function toggleStatus(id){
-  try{
-    const ap = liveAppointments.find(a=> a.id===id);
-    if(!ap) return;
-    const newStatus = (ap.status === 'confirmado') ? 'pendente' : 'confirmado';
-    await setDoc(doc(db,'appointments',id), { status: newStatus }, { merge: true });
-  }catch(e){ console.error(e); }
+function toggleStatus(id){
+  const all = loadStorage();
+  const idx = all.findIndex(e=>e.id===id);
+  if(idx>=0){ all[idx].status = all[idx].status==='pendente'?'confirmado':'pendente'; saveStorage(all); refreshCalendarEvents(window._fc); }
 }
-
 function clearForm(){
   document.getElementById('editId').value='';
   document.getElementById('nome').value='';
@@ -502,42 +466,19 @@ function clearForm(){
   document.getElementById('formMessage').textContent='';
 }
 
-/* refresh calendar from liveAppointments */
-function refreshCalendarEventsFromLive(){
-  if(!calendar) return;
+/* calendar refresh */
+function refreshCalendarEvents(calendar){
+  const all = loadStorage();
   calendar.removeAllEvents();
-  liveAppointments.forEach(a=>{
-    try{ calendar.addEvent(docToEvent({ id: a.id, data: ()=>a })); }catch(e){ console.error(e); }
-  });
+  all.forEach(ev=> calendar.addEvent(evToCalendarEvent(ev)));
 }
 
-/* scroll helper */
+/* scrolling helper */
 function scrollToForm(){ const el=document.getElementById('addForm'); if(el) setTimeout(()=> el.scrollIntoView({behavior:'smooth', block:'center'}),150); }
 
-/* CONTACT PICKER (Web Contact Picker API) */
-async function pickContactFromDevice(){
-  // Prefer Web Contacts API when available
-  if('contacts' in navigator && typeof navigator.contacts.select === 'function'){
-    try{
-      const props = ['tel','name'];
-      const opts = { multiple: false };
-      const contacts = await navigator.contacts.select(props, opts);
-      if(contacts.length > 0){
-        const c = contacts[0];
-        const tel = (c.tel && c.tel[0]) ? c.tel[0].replace(/\D/g,'') : '';
-        document.getElementById('contato').value = tel;
-        if(c.name && c.name[0] && !document.getElementById('nome').value) document.getElementById('nome').value = c.name[0];
-      }
-      return;
-    }catch(e){ console.warn('Contact picker cancelled or failed', e); }
-  }
-
-  // Fallback: try to open tel: (will open dialer on mobile, user can copy)
-  try{ window.location.href = 'tel:'; }catch(e){ alert('Não foi possível acessar a agenda neste dispositivo.'); }
-}
-
-/* Simple user display/login (local only) */
+/* LOGIN (sem senha) */
 function showLogin(){
+  // build modal
   const existing = document.getElementById('loginModal');
   if(existing) return;
   const modal = document.createElement('div'); modal.id='loginModal'; modal.className='login-panel';
@@ -578,6 +519,40 @@ function renderUserInfo(){
     document.getElementById('loginBtn').onclick = showLogin;
   }
 }
+
+/* init utilities (none) */
+(function initUI(){
+  // nothing for now
+})();
+
+// 📱 Selecionar número da agenda do celular (Contact Picker API)
+const pickContactBtn = document.getElementById('pickContact');
+if(pickContactBtn){
+  pickContactBtn.addEventListener('click', async ()=>{
+    if(!('contacts' in navigator)){
+      alert("Seu navegador não suporta acesso à agenda.");
+      return;
+    }
+
+    try{
+      const props = ['tel', 'name'];
+      const opts = { multiple: false };
+      const contacts = await navigator.contacts.select(props, opts);
+
+      if(contacts.length > 0){
+        const c = contacts[0];
+        const tel = (c.tel && c.tel[0]) ? c.tel[0].replace(/\D/g, '') : '';
+        document.getElementById('contato').value = tel;
+        if(c.name && c.name[0] && !document.getElementById('nome').value){
+          document.getElementById('nome').value = c.name[0];
+        }
+      }
+    }catch(e){
+      console.log("Permissão negada ou erro:", e);
+    }
+  });
+}
+
 
 </script>
 </body>
