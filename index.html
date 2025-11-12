@@ -3,189 +3,115 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Agenda - Studio Juliana Julia (Avançada)</title>
+<title>Studio Juliana Julia - Agenda</title>
 
 <!-- FullCalendar CSS (CDN) -->
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet"/>
 
 <style>
-:root{
-  --primary:#d84315;
-  --accent:#ff7043;
-  --bg:#fef9f7;
-  --card:#fff3e0;
-  --ok:#00796b;
-  --whatsapp:#25d366;
-  --text:#333;
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background-color: #f7f7f7;
 }
-*{box-sizing:border-box}
-body{
-  font-family: "Segoe UI", Tahoma, Verdana, sans-serif;
-  margin:0; background:var(--bg); color:var(--text);
+header {
+  text-align: center;
+  padding: 15px;
+  background-color: #d4a5a5;
+  color: #fff;
+  font-size: 22px;
+  font-weight: bold;
 }
-header{
-  display:flex; align-items:center; justify-content:space-between;
-  gap:12px; padding:14px 18px; border-bottom:1px solid rgba(0,0,0,0.06);
-  background: linear-gradient(90deg, rgba(255,250,248,1) 0%, rgba(254,243,234,1) 100%);
+#calendar {
+  max-width: 900px;
+  margin: 30px auto;
+  background: #fff;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-header h1{ margin:0; font-size:18px; color:var(--primary); }
-.header-right{ display:flex; gap:10px; align-items:center; }
-.btn{ border:0; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:600; box-shadow:0 3px 8px rgba(0,0,0,0.06); background:transparent; }
-.btn.primary{ background:var(--primary); color:#fff; }
-.btn.ghost{ background:transparent; border:1px solid rgba(0,0,0,0.06); }
-.main{ display:flex; gap:18px; padding:18px; align-items:flex-start; }
-#calendar { flex:1 1 700px; background:white; border-radius:12px; padding:14px; box-shadow:0 8px 24px rgba(0,0,0,0.06); min-width:300px; }
-
-.side-panel{
-  width:360px; max-width:36%; min-width:280px; background:var(--card);
-  border-radius:12px; padding:14px; box-shadow:0 8px 24px rgba(0,0,0,0.06);
-  display:flex; flex-direction:column; gap:12px; height: calc(100vh - 120px); overflow:auto;
+#panel {
+  max-width: 900px;
+  margin: 10px auto;
+  background: #fff;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-.panel-header{ display:flex; justify-content:space-between; align-items:center; gap:8px; }
-.panel-header h2{ margin:0; font-size:16px; color:var(--primary); }
-.small{ font-size:13px; color:#444; }
-.controls-row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-
-.search-group{ display:flex; gap:8px; }
-.search-group input{ padding:8px; border-radius:8px; border:1px solid rgba(0,0,0,0.08); }
-
-.event-list{ display:flex; flex-direction:column; gap:10px; margin-top:6px; }
-.event-card{ background:white; border-radius:10px; padding:10px; box-shadow:0 4px 8px rgba(0,0,0,0.04); display:flex; flex-direction:column; gap:8px; }
-.event-row{ display:flex; justify-content:space-between; gap:8px; align-items:center; }
-.event-meta{ font-weight:700; color:#222; }
-.event-desc{ color:#555; font-size:13px; }
-
-.chip{ padding:6px 8px; border-radius:8px; font-size:13px; font-weight:700; }
-.chip.pendente{ background:#fff3e0; color:var(--primary); border:1px solid rgba(216,67,21,0.08); }
-.chip.confirmado{ background:#e0f7fa; color:var(--ok); border:1px solid rgba(0,121,107,0.08); }
-
-.event-actions{ display:flex; gap:6px; flex-wrap:wrap; }
-.small-btn{ padding:8px 10px; border-radius:8px; border:0; cursor:pointer; font-weight:600; }
-.small-btn.whatsapp{ background:var(--whatsapp); color:#fff; }
-.small-btn.delete{ background:#ff8a65; color:#fff; }
-.small-btn.status{ background:#ffcc80; color:#333; }
-.small-btn.edit{ background:#4fc3f7; color:#fff; }
-
-form.add-form{ display:flex; flex-direction:column; gap:8px; margin-top:6px; }
-form label{ font-size:13px; color:#333; font-weight:600; }
-form input, form textarea, form select{ padding:8px 10px; border-radius:8px; border:1px solid rgba(0,0,0,0.08); font-size:14px; }
-.form-actions{ display:flex; gap:8px; }
-.hint{ font-size:12px; color:#555; }
-
-.login-panel{
-  position:fixed; inset:0; background:rgba(0,0,0,0.35); display:flex; align-items:center; justify-content:center;
+label {
+  display: block;
+  margin-top: 10px;
 }
-.login-box{ background:white; padding:18px; border-radius:12px; width:320px; box-shadow:0 10px 30px rgba(0,0,0,0.2); }
-
-.footer-note{ padding:12px 18px; text-align:center; color:#666; font-size:13px; }
-
-@media (max-width:1000px){
-  .main{ flex-direction:column; padding:12px; }
-  .side-panel{ width:100%; max-width:100%; min-width:unset; height:auto; order:2; }
-  #calendar{ order:1; }
+input, select, textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-top: 4px;
+}
+button {
+  margin-top: 15px;
+  padding: 10px 15px;
+  background-color: #d4a5a5;
+  border: none;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+button:hover {
+  background-color: #c18f8f;
+}
+#formMessage {
+  color: green;
+  font-size: 14px;
+  margin-top: 5px;
+}
+@media (max-width: 600px){
+  #calendar, #panel{
+    width: 95%;
+    margin: 10px auto;
+  }
+  header{
+    font-size: 18px;
+  }
 }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>Studio Juliana Julia — Agenda</h1>
-  <div class="header-right">
-    <div id="userInfo" class="small"></div>
-    <button id="todayBtn" class="btn ghost">Hoje</button>
-    <button id="viewMonth" class="btn ghost">Mês</button>
-    <button id="viewWeek" class="btn ghost">Semana</button>
-    <button id="viewDay" class="btn ghost">Dia</button>
-  </div>
-</header>
+<header>Studio Juliana Julia - Agenda</header>
 
-<div class="main">
-  <div id="calendar"></div>
+<div id="calendar"></div>
 
-  <aside class="side-panel" id="sidePanel" aria-hidden="true">
-    <div class="panel-header">
-      <h2 id="panelTitle">Clique em um dia</h2>
-      <div><span id="dayCount" class="small"></span></div>
-    </div>
+<div id="panel">
+  <h3>Agendamento</h3>
+  <input type="hidden" id="editId">
+  <label>Nome:</label>
+  <input type="text" id="nome">
+  
+  <label>Serviço / Descrição:</label>
+  <input type="text" id="servico">
+  
+  <label>Contato (WhatsApp):</label>
+  <input type="text" id="contato">
+  
+  <label>Data:</label>
+  <input type="date" id="data">
+  
+  <label>Hora Início:</label>
+  <input type="time" id="horaInicio">
+  
+  <label>Hora Fim:</label>
+  <input type="time" id="horaFim">
+  
+  <label>Status:</label>
+  <select id="status">
+    <option value="Confirmado">Confirmado</option>
+    <option value="Pendente">Pendente</option>
+    <option value="Cancelado">Cancelado</option>
+  </select>
 
-    <div class="controls-row">
-      <div class="search-group" style="flex:1">
-        <input type="search" id="searchName" placeholder="Pesquisar por nome..." />
-      </div>
-      <div>
-        <input type="date" id="filterDate" title="Filtrar por data" />
-      </div>
-      <div>
-        <button id="clearFilters" class="btn ghost">Limpar</button>
-      </div>
-    </div>
+  <label><input type="checkbox" id="autoWhats"> Enviar confirmação automática via WhatsApp</label>
 
-    <div class="hint">Horário de trabalho: <strong>07:00</strong> às <strong>21:00</strong>. Sem tempo mínimo.</div>
-
-    <div id="eventList" class="event-list"></div>
-
-    <hr/>
-
-    <div>
-      <h3 style="margin:0 0 6px 0;">Adicionar / Editar agendamento</h3>
-
-      <form id="addForm" class="add-form">
-        <input type="hidden" id="editId" />
-        <label>Nome</label>
-        <input id="nome" type="text" required placeholder="Nome do cliente"/>
-
-        <label>Serviço</label>
-        <input id="servico" type="text" placeholder="Ex: Manicure"/>
-
-        <label>Contato</label>
-        <div style="display:flex; gap:8px;">
-          <input id="contato" type="text" required placeholder="Selecione ou digite..." style="flex:1;"/>
-          <button type="button" id="pickContact" class="btn ghost">Agenda</button>
-        </div>
-
-        <label>Data</label>
-        <input id="data" type="date" required />
-
-        <label>Hora início</label>
-        <input id="horaInicio" type="time" required />
-
-        <label>Hora fim</label>
-        <input id="horaFim" type="time" required />
-
-        <label>Status</label>
-        <select id="status">
-          <option value="pendente">Pendente</option>
-          <option value="confirmado">Confirmado</option>
-        </select>
-
-        <label><input type="checkbox" id="autoWhats" /> Enviar WhatsApp automaticamente ao salvar</label>
-
-        <div class="form-actions">
-          <button type="submit" class="btn primary" style="flex:1;">Salvar</button>
-          <button type="button" id="cancelEdit" class="btn">Limpar</button>
-        </div>
-
-        <div id="formMessage" class="hint"></div>
-      </form>
-    </div>
-
-    <footer class="footer-note">Clique em um dia no calendário para ver e gerenciar os horários.</footer>
-  </aside>
-</div>
-
-<footer class="footer-note">Dados salvos localmente no navegador. FullCalendar carregado via CDN.</footer>
-
-<!-- FullCalendar (CDN) -->
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/locales/pt-br.global.min.js"></script>
-
-<script>
-/* Agenda Avançada - integração de todas as funções pedidas */
-/* STORAGE KEY */
-const STORAGE_KEY = 'agendaEventos_v2';
-/* Helpers */
-function saveStorage(arr){ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
-function loadStorage(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e){ return []; } }
-function uid(){ return Math.random().toString(36).slice(2,9); }
-function toMinutes(t){ if(!t) return 0; const [h,m]=t.split(':').map(Number); return h*60 + m; }
-function formatDateDot(dateStr){ const d=new Date(dateStr + 'T00:00:00'); const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMon
+  <button onclick="handleFormSubmit
