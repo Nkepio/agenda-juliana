@@ -180,7 +180,7 @@ form input, form textarea, form select{ padding:8px 10px; border-radius:8px; bor
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/locales/pt-br.global.min.js"></script>
 
 <script>
-/* Agenda Avançada - integração de todas as funções pedidas */
+/* Agenda Avançada - integração */
 
 /* STORAGE KEY */
 const STORAGE_KEY = 'agendaEventos_v2';
@@ -229,7 +229,7 @@ function evToCalendarEvent(ev){
 /* Envia para Google Sheets (Apps Script) */
 async function sendToSheet(payload){
   try{
-    // Usamos mode: 'no-cors' porque apps script muitas vezes não retorna cabeçalhos CORS,
+    // Usei mode: 'no-cors' porque apps script muitas vezes não retorna cabeçalhos CORS,
     // assim o envio é feito mesmo que a resposta não seja acessível no navegador.
     await fetch(SCRIPT_URL, {
       method: 'POST',
@@ -536,7 +536,7 @@ function renderUserInfo(){
   const u = JSON.parse(localStorage.getItem('agendaUser') || 'null');
   if(u){
     userInfoEl.textContent = `Olá, ${u.name}`;
-    // loginBtn não existe no layout atual mas mantive a lógica caso insira depois
+    // loginBtn não existe no layout atual 
     const lb = document.getElementById('loginBtn');
     if(lb){ lb.textContent = 'Sair'; lb.onclick = ()=> { if(confirm('Sair da sessão?')){ localStorage.removeItem('agendaUser'); renderUserInfo(); } }; }
   } else {
